@@ -58,7 +58,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
         }
     });
 
-    qRController = new QRReaderController(cameras[0], ResolutionPreset.high, [CodeFormat.qr,CodeFormat.pdf417], (s){
+    qRController = new QRReaderController(cameras[0], ResolutionPreset.high, CodeFormat.values, (s){
       setState((){scanned = s;});
     });
     qRController.initialize().then((n){
