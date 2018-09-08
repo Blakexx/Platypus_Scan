@@ -42,7 +42,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
     );
 
     animationController.addListener(() {
-      this.setState(() {});
+      setState((){});
     });
 
     animationController.forward();
