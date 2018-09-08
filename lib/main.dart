@@ -10,6 +10,7 @@ List<CameraDescription> cameras;
 
 void main() async{
   SystemChrome.setEnabledSystemUIOverlays([]);
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitDown]);
   cameras = await availableCameras();
   runApp(new MaterialApp(
       home: new HomePage()
@@ -75,6 +76,13 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
   Widget build(BuildContext context){
     if(!qRController.value.isInitialized){
       return new Container(child: new Center(child: new CircularProgressIndicator()));
+    }
+    if(MediaQuery.of(context).size.width>MediaQuery.of(context).size.height){
+      return new Scaffold(
+        body: new Center(
+          child: new Text("Please enter portrait mode")
+        )
+      );
     }
     return scanned==null?new Scaffold(
       body: new Stack(
