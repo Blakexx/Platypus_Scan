@@ -10,6 +10,7 @@ dependencies:
   cupertino_icons:
   fast_qr_reader_view:
   url_launcher:
+  lamp:
 
 dev_dependencies:
   flutter_test:

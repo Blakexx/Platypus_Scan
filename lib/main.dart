@@ -3,10 +3,13 @@ import 'package:fast_qr_reader_view/fast_qr_reader_view.dart';
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:lamp/lamp.dart';
 import 'dart:convert';
 
 
 List<CameraDescription> cameras;
+
+bool lightOn = false;
 
 void main() async{
   SystemChrome.setEnabledSystemUIOverlays([]);
@@ -31,6 +34,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
   QRReaderController qRController;
 
   AnimationController animationController;
+
   Animation<double> verticalPosition;
 
   void initState(){
@@ -95,6 +99,17 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
           new AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0.0,
+            leading: new IconButton(
+              icon: new Icon(lightOn?Icons.flash_off:Icons.flash_on,color: Colors.white),
+              onPressed: (){
+                if(!lightOn){
+                  Lamp.turnOn();
+                }else{
+                  Lamp.turnOff();
+                }
+                setState((){lightOn = !lightOn;});
+              }
+            ),
             actions: [
               new IconButton(
                 icon: new Icon(Icons.more_vert),
