@@ -196,14 +196,26 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 text: scanned,
                 style: new TextStyle(color: Colors.blue),
                 recognizer: new TapGestureRecognizer()..onTap = () async{
-                  String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
-                  if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (scanned.substring(0,8)!="https://"&&scanned.substring(0,7)!="http://")){
-                    url = "https://"+url;
+                  bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase());
+                  String url = isUrl?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                  if(isUrl){
+                    //google.com
+                    //a.com
+                    //bbc.com
+                    //https://bbc.com
+                    //www.bbc.com
+                    //www.a.u
+                    if(url.length<8||url.substring(0,8)!="https://"){
+                      url = "https://"+url;
+                    }
+                    if(url.length<12||url.substring(8,13)!="www."){
+                      url = "https://www."+url.substring(13);
+                    }
                   }
                   if(await canLaunch(url)){
                     await launch(url);
                   }else{
-                    if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())){
+                    if(isUrl){
                       String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
                       if(await canLaunch(url2)){
                         await launch(url2);
@@ -230,14 +242,20 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 new RaisedButton(
                     child: new Text("Open in browser"),
                     onPressed: () async{
-                      String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
-                      if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (url.substring(0,8)!="https://"&&url.substring(0,7)!="http://")){
-                        url = "https://"+url;
+                      bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase());
+                      String url = isUrl?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                      if(isUrl){
+                        if(url.length<8||url.substring(0,8)!="https://"){
+                          url = "https://"+url;
+                        }
+                        if(url.length<12||url.substring(8,13)!="www."){
+                          url = "https://www."+url.substring(13);
+                        }
                       }
                       if(await canLaunch(url)){
                         await launch(url);
                       }else{
-                        if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())){
+                        if(isUrl){
                           String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
                           if(await canLaunch(url2)){
                             await launch(url2);
