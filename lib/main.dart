@@ -199,12 +199,6 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                   bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase());
                   String url = isUrl?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
                   if(isUrl){
-                    //google.com
-                    //a.com
-                    //bbc.com
-                    //https://bbc.com
-                    //www.bbc.com
-                    //www.a.u
                     if(url.length<8||url.substring(0,8)!="https://"){
                       url = "https://"+url;
                     }
