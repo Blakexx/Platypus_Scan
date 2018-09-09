@@ -4,6 +4,9 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lamp/lamp.dart';
+import 'dart:io';
+import 'package:flutter/gestures.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
 
 
@@ -13,7 +16,9 @@ bool lightOn = false;
 
 void main() async{
   SystemChrome.setEnabledSystemUIOverlays([]);
-  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitDown]);
+  if(Platform.isAndroid){
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitDown]);
+  }
   cameras = await availableCameras();
   runApp(new MaterialApp(
       home: new HomePage()
@@ -26,6 +31,9 @@ class HomePage extends StatefulWidget{
 }
 
 class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
+
+
+  bool bottomBarOpen = false;
 
   String scanned;
 
@@ -45,7 +53,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
       duration: new Duration(seconds: 3),
     );
 
-    animationController.addListener(() {
+    animationController.addListener((){
       setState((){});
     });
 
@@ -59,6 +67,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
     });
 
     qRController = new QRReaderController(cameras[0], ResolutionPreset.high, CodeFormat.values, (s){
+      if(bottomBarOpen){
+        Navigator.of(context).pop();
+        bottomBarOpen = false;
+      }
       setState((){scanned = s;});
     });
     qRController.initialize().then((n){
@@ -114,7 +126,36 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
               new IconButton(
                 icon: new Icon(Icons.more_vert),
                 onPressed: (){
+                  bottomBarOpen = true;
+                  showModalBottomSheet(context: context, builder: (context)=> new Container(
+                    height: MediaQuery.of(context).size.height/3,
+                    child: new Column(
+                      children: ["Create a QR code","Decode from an Image","Website","Rate us"].map((s)=>new MaterialButton(height:MediaQuery.of(context).size.height/12,child:new Text(s),onPressed:() async{
+                        Navigator.of(context).pop();
+                        if(s=="Create a QR code"){
 
+                        }else if(s=="Decode from a Picture"){
+
+                        }else if(s=="Website"){
+                          const url = 'https://www.platypus.land';
+                          if(await canLaunch(url)){
+                            await launch(url);
+                          }else{
+                            throw 'Could not launch $url';
+                          }
+                        }else if(s=="Rate us"){
+                          if(Platform.isIOS){
+
+                          }else if(Platform.isAndroid){
+
+                          }
+                        }
+
+                      })).toList()
+                    )
+                  )).then((v){
+                    bottomBarOpen = false;
+                  });
                 },
               )
             ],
@@ -151,7 +192,29 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
             new Padding(padding: EdgeInsets.only(left:30.0,right:30.0),child:new Container(
               padding: EdgeInsets.all(15.0),
               color: Colors.black12,
-              child: new Text(scanned,style:new TextStyle(color: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Colors.blue:Colors.black),maxLines:4,overflow: TextOverflow.ellipsis)
+              child: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?new RichText(text:new TextSpan(
+                text: scanned,
+                style: new TextStyle(color: Colors.blue),
+                recognizer: new TapGestureRecognizer()..onTap = () async{
+                  String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                  if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (url.substring(0,7)!="https://"&&url.substring(0,6)!="http://")){
+                    url = "https://"+url;
+                  }
+                  if(await canLaunch(url)){
+                    await launch(url);
+                  }else{
+                    if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())){
+                      String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                      if(await canLaunch(url2)){
+                        await launch(url2);
+                      }else{
+                        throw 'Could not launch $url2';
+                      }
+                    }
+                    throw 'Could not launch $url';
+                  }
+                }
+              )):new Text(scanned,style:new TextStyle(color:Colors.black),maxLines:4,overflow: TextOverflow.ellipsis)
             )),
             new Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -167,13 +230,16 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 new RaisedButton(
                     child: new Text("Open in browser"),
                     onPressed: () async{
-                      String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned):"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
-                      if(await canLaunch(url)) {
+                      String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                      if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (url.substring(0,7)!="https://"&&url.substring(0,6)!="http://")){
+                        url = "https://"+url;
+                      }
+                      if(await canLaunch(url)){
                         await launch(url);
                       }else{
                         if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())){
                           String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
-                          if(await canLaunch(url2)) {
+                          if(await canLaunch(url2)){
                             await launch(url2);
                           }else{
                             throw 'Could not launch $url2';

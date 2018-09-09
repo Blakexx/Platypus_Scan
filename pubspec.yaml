@@ -11,6 +11,7 @@ dependencies:
   fast_qr_reader_view:
   url_launcher:
   lamp:
+  qr_flutter:
 
 dev_dependencies:
   flutter_test:
