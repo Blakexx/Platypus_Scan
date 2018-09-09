@@ -17,7 +17,7 @@ bool lightOn = false;
 void main() async{
   SystemChrome.setEnabledSystemUIOverlays([]);
   if(Platform.isAndroid){
-    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitDown]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
   cameras = await availableCameras();
   runApp(new MaterialApp(
