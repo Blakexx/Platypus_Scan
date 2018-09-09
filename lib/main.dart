@@ -197,7 +197,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 style: new TextStyle(color: Colors.blue),
                 recognizer: new TapGestureRecognizer()..onTap = () async{
                   String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
-                  if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (url.substring(0,7)!="https://"&&url.substring(0,6)!="http://")){
+                  if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (scanned.substring(0,8)!="https://"&&scanned.substring(0,7)!="http://")){
                     url = "https://"+url;
                   }
                   if(await canLaunch(url)){
@@ -231,7 +231,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                     child: new Text("Open in browser"),
                     onPressed: () async{
                       String url = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
-                      if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (url.substring(0,7)!="https://"&&url.substring(0,6)!="http://")){
+                      if(new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase()) && (url.substring(0,8)!="https://"&&url.substring(0,7)!="http://")){
                         url = "https://"+url;
                       }
                       if(await canLaunch(url)){
