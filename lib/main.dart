@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:fast_qr_reader_view/fast_qr_reader_view.dart';
-import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lamp/lamp.dart';
 import 'dart:io';
 import 'package:flutter/gestures.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:async';
+import 'dart:typed_data';
+import 'dart:ui';
+import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:advanced_share/advanced_share.dart';
 import 'dart:convert';
+import 'package:image_picker_saver/image_picker_saver.dart';
 
 
 List<CameraDescription> cameras;
@@ -65,7 +72,6 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
           animationController.forward();
         }
     });
-
     qRController = new QRReaderController(cameras[0], ResolutionPreset.high, CodeFormat.values, (s){
       if(bottomBarOpen){
         Navigator.of(context).pop();
@@ -133,7 +139,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                       children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new MaterialButton(height:MediaQuery.of(context).size.height/10,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
-
+                          Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
                         }else if(s=="Decode from a Picture"){
 
                         }else if(s=="History"){
@@ -196,6 +202,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
               color: Colors.black12,
               child: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase())?new RichText(text:new TextSpan(
                 text: scanned,
+                // ignore: conflicting_dart_import
                 style: new TextStyle(color: Colors.blue),
                 recognizer: new TapGestureRecognizer()..onTap = () async{
                   bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase());
@@ -276,6 +283,53 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
             )
           ]
         )
+      )
+    );
+  }
+}
+
+class CreateACode extends StatefulWidget{
+  @override
+  CreateACodeState createState() => new CreateACodeState();
+}
+
+class CreateACodeState extends State<CreateACode>{
+
+  String input;
+
+  TextEditingController c = new TextEditingController();
+
+  GlobalKey globalKey = new GlobalKey();
+
+  @override
+  Widget build(BuildContext context){
+    return new Scaffold(
+      appBar: new AppBar(
+        title: new Text("Create a Code"),
+        actions: [
+          new IconButton(
+            icon: new Icon(Icons.share),
+            onPressed: () async{
+              RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
+              var image = await boundary.toImage();
+              ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+              Uint8List pngBytes = byteData.buffer.asUint8List();
+              final tempDir = await getTemporaryDirectory();
+              final file = await new File('${tempDir.path}/image.png').create();
+              await file.writeAsBytes(pngBytes);
+              String data = base64.encode(await file.readAsBytes());
+              //AdvancedShare.generic(url: "data:image/png;base64,$data");
+              AdvancedShare.generic(msg: "why");
+            }
+          )
+        ]
+      ),
+      body: new Container(
+        child: new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
+          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
+          new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/4))),
+          new RaisedButton(child:new Text("Save"),onPressed:(){}),
+        ])
       )
     );
   }

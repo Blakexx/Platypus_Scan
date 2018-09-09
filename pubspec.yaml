@@ -12,6 +12,10 @@ dependencies:
   url_launcher:
   lamp:
   qr_flutter:
+  path_provider:
+  flutter_slidable:
+  advanced_share:
+  image_picker_saver:
 
 dev_dependencies:
   flutter_test:
