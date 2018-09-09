@@ -128,13 +128,15 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 onPressed: (){
                   bottomBarOpen = true;
                   showModalBottomSheet(context: context, builder: (context)=> new Container(
-                    height: MediaQuery.of(context).size.height/3,
+                    height: MediaQuery.of(context).size.height/2.5,
                     child: new Column(
-                      children: ["Create a QR code","Decode from an Image","Website","Rate us"].map((s)=>new MaterialButton(height:MediaQuery.of(context).size.height/12,child:new Text(s),onPressed:() async{
+                      children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new MaterialButton(height:MediaQuery.of(context).size.height/12.5,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
 
                         }else if(s=="Decode from a Picture"){
+
+                        }else if(s=="History"){
 
                         }else if(s=="Website"){
                           const url = 'https://www.platypus.land';
