@@ -269,7 +269,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 child: new Text("Done"),
                 onPressed: (){
                   setState((){scanned=null;});
-                  new Timer(new Duration(seconds:1),(){qRController.startScanning();});
+                  qRController.startScanning();
                 }
             )
           ]
