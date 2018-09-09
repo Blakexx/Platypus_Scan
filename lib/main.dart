@@ -203,7 +203,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                       url = "https://"+url;
                     }
                     if(url.length<12||url.substring(8,13)!="www."){
-                      url = "https://www."+url.substring(13);
+                      url = "https://www."+url.substring(8);
                     }
                   }
                   if(await canLaunch(url)){
@@ -243,7 +243,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                           url = "https://"+url;
                         }
                         if(url.length<12||url.substring(8,13)!="www."){
-                          url = "https://www."+url.substring(13);
+                          url = "https://www."+url.substring(8);
                         }
                       }
                       if(await canLaunch(url)){
