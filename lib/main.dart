@@ -198,12 +198,13 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 recognizer: new TapGestureRecognizer()..onTap = () async{
                   bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase());
                   String url = isUrl?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                  bool isHttp = url.length>=7&&url.substring(0,7)=="http://";
                   if(isUrl){
-                    if(url.length<8||url.substring(0,8)!="https://"){
+                    if(!isHttp&&(url.length<8||url.substring(0,8)!="https://")){
                       url = "https://"+url;
                     }
-                    if(url.length<12||url.substring(8,12)!="www."){
-                      url = "https://www."+url.substring(8);
+                    if(url.length<12-(isHttp?1:0)||url.substring(8-(isHttp?1:0),12-(isHttp?1:0))!="www."){
+                      url = (isHttp?"http://":"https://")+"www."+url.substring(8-(isHttp?1:0));
                     }
                   }
                   if(await canLaunch(url)){
@@ -238,12 +239,13 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                     onPressed: () async{
                       bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(scanned.toLowerCase());
                       String url = isUrl?Uri.encodeFull(scanned).toString():"https://www.google.com/search?q=${Uri.encodeComponent(scanned)}";
+                      bool isHttp = url.length>=7&&url.substring(0,7)=="http://";
                       if(isUrl){
-                        if(url.length<8||url.substring(0,8)!="https://"){
+                        if(!isHttp&&(url.length<8||url.substring(0,8)!="https://")){
                           url = "https://"+url;
                         }
-                        if(url.length<12||url.substring(8,12)!="www."){
-                          url = "https://www."+url.substring(8);
+                        if(url.length<12-(isHttp?1:0)||url.substring(8-(isHttp?1:0),12-(isHttp?1:0))!="www."){
+                          url = (isHttp?"http://":"https://")+"www."+url.substring(8-(isHttp?1:0));
                         }
                       }
                       if(await canLaunch(url)){
