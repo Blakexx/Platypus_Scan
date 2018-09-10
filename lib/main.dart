@@ -96,7 +96,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
             backgroundColor: Colors.transparent,
             elevation: 0.0,
             leading: new IconButton(
-              icon: new Icon(lightOn?Icons.flash_off:Icons.flash_on,color: Colors.white),
+              icon: new Icon(lightOn?Icons.flash_on:Icons.flash_off,color: Colors.white),
               onPressed: (){
                 if(!lightOn){
                   Lamp.turnOn();
@@ -114,7 +114,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                   showModalBottomSheet(context: context, builder: (context)=> new Container(
                     height: MediaQuery.of(context).size.height/2,
                     child: new Column(
-                      children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new MaterialButton(height:MediaQuery.of(context).size.height/10,child:new Text(s),onPressed:() async{
+                      children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
@@ -137,7 +137,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                           }
                         }
 
-                      })).toList()
+                      }))).toList()
                     )
                   )).then((v){
                     bottomBarOpen = false;
