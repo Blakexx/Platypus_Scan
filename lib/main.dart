@@ -114,7 +114,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                   showModalBottomSheet(context: context, builder: (context)=> new Container(
                     height: MediaQuery.of(context).size.height/2,
                     child: new Column(
-                      children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
+                      children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black38))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
