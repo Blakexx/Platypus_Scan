@@ -295,7 +295,7 @@ class CreateACode extends StatefulWidget{
 
 class CreateACodeState extends State<CreateACode>{
 
-  String input;
+  String input = "";
 
   TextEditingController c = new TextEditingController();
 
@@ -326,8 +326,8 @@ class CreateACodeState extends State<CreateACode>{
       ),
       body: new Container(
         child: new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
-          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
-          new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/4))),
+          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(inputFormatters: [new LengthLimitingTextInputFormatter(128)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
+          new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
           new RaisedButton(child:new Text("Save"),onPressed:(){}),
         ])
       )
