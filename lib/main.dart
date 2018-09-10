@@ -65,7 +65,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
         qRController.startScanning();
       });
     }
-    }
+  }
 
 
   @override
@@ -76,11 +76,9 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context){
-    /*
-    if(!qRController.value.isInitialized){
+    if(qrController==null||!qRController.value.isInitialized){
       return new Container(child: new Center(child: new CircularProgressIndicator()));
     }
-    */
     if(MediaQuery.of(context).size.width>MediaQuery.of(context).size.height){
       return new Scaffold(
         body: new Center(
