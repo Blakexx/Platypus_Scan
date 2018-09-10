@@ -12,7 +12,6 @@ import 'dart:typed_data';
 import 'dart:ui';
 import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:advanced_share/advanced_share.dart';
 import 'dart:convert';
 import 'package:image_picker_saver/image_picker_saver.dart';
 
@@ -48,30 +47,8 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
 
   QRReaderController qRController;
 
-  AnimationController animationController;
-
-  Animation<double> verticalPosition;
-
   void initState(){
     super.initState();
-
-    animationController = new AnimationController(
-      vsync: this,
-      duration: new Duration(seconds: 3),
-    );
-
-    animationController.addListener((){
-      setState((){});
-    });
-
-    animationController.forward();
-    verticalPosition = new Tween<double>(begin: 0.0, end: 300.0).animate(new CurvedAnimation(parent: animationController, curve: Curves.linear))..addStatusListener((state) {
-        if (state == AnimationStatus.completed) {
-          animationController.reverse();
-        } else if (state == AnimationStatus.dismissed) {
-          animationController.forward();
-        }
-    });
     qRController = new QRReaderController(cameras[0], ResolutionPreset.high, CodeFormat.values, (s){
       if(bottomBarOpen){
         Navigator.of(context).pop();
@@ -110,10 +87,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
       body: new Stack(
         children: [
           new QRReaderPreview(qRController),
-          //new Positioned(child: new Container(height:MediaQuery.of(context).size.height,width:MediaQuery.of(context).size.width/6,color:Colors.black12),right:0.0),
-          //new Positioned(child: new Container(height:MediaQuery.of(context).size.height,width:MediaQuery.of(context).size.width/6,color:Colors.black12),left:0.0),
-          //new Positioned(child: new Container(width:MediaQuery.of(context).size.width/1.5+1,height:(MediaQuery.of(context).size.height-MediaQuery.of(context).size.width/1.5)/2,color:Colors.black12),left:MediaQuery.of(context).size.width/6-.5),
-          //new Positioned(child: new Container(width:MediaQuery.of(context).size.width/1.5+1,height:(MediaQuery.of(context).size.height-MediaQuery.of(context).size.width/1.5)/2,color:Colors.black12),left:MediaQuery.of(context).size.width/6-.5,bottom:0.0),
+          new Positioned(child: new Container(height:MediaQuery.of(context).size.height,width:MediaQuery.of(context).size.width/6,color:Colors.black12),right:0.0),
+          new Positioned(child: new Container(height:MediaQuery.of(context).size.height,width:MediaQuery.of(context).size.width/6,color:Colors.black12),left:0.0),
+          new Positioned(child: new Container(width:MediaQuery.of(context).size.width/1.5+1,height:(MediaQuery.of(context).size.height-MediaQuery.of(context).size.width/1.5)/2,color:Colors.black12),left:MediaQuery.of(context).size.width/6-.5),
+          new Positioned(child: new Container(width:MediaQuery.of(context).size.width/1.5+1,height:(MediaQuery.of(context).size.height-MediaQuery.of(context).size.width/1.5)/2,color:Colors.black12),left:MediaQuery.of(context).size.width/6-.5,bottom:0.0),
           new AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0.0,
@@ -167,27 +144,6 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 },
               )
             ],
-          ),
-          new Center(
-            child: Stack(
-              children: <Widget>[
-                new SizedBox(
-                  height: MediaQuery.of(context).size.width/1.5,
-                  width: MediaQuery.of(context).size.width/1.5,
-                  child: new Container(decoration: new BoxDecoration(border: Border.all(color: Colors.white, width: 2.0))),
-                ),
-                new Positioned(
-                  top: verticalPosition.value,
-                  child: new Container(
-                    width: (MediaQuery.of(context).size.width/1.5),
-                    height: 2.0,
-                    color: Colors.green,
-                  ),
-                  left:2.0,
-                  right:2.0
-                )
-              ],
-            )
           )
         ]
       )
@@ -317,16 +273,14 @@ class CreateACodeState extends State<CreateACode>{
               final tempDir = await getTemporaryDirectory();
               final file = await new File('${tempDir.path}/image.png').create();
               await file.writeAsBytes(pngBytes);
-              String data = base64.encode(await file.readAsBytes());
-              //AdvancedShare.generic(url: "data:image/png;base64,$data");
-              AdvancedShare.generic(msg: "why");
+
             }
           )
         ]
       ),
       body: new Container(
         child: new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
-          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(inputFormatters: [new LengthLimitingTextInputFormatter(128)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
+          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(inputFormatters: [new LengthLimitingTextInputFormatter(128/*78*/)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
           new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
           new RaisedButton(child:new Text("Save"),onPressed:(){}),
         ])

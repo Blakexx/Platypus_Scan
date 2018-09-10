@@ -14,7 +14,6 @@ dependencies:
   qr_flutter:
   path_provider:
   flutter_slidable:
-  advanced_share:
   image_picker_saver:
 
 dev_dependencies:
@@ -27,6 +26,11 @@ dev_dependencies:
 
 # The following section is specific to Flutter.
 flutter:
+  assets:
+    - assets/topRight.png
+    - assets/topLeft.png
+    - assets/bottomRight.png
+    - assets/bottomLeft.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

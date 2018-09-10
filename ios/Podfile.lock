@@ -16,7 +16,7 @@ PODS:
 DEPENDENCIES:
   - advanced_share (from `.symlinks/plugins/advanced_share/ios`)
   - fast_qr_reader_view (from `.symlinks/plugins/fast_qr_reader_view/ios`)
-  - Flutter (from `.symlinks/flutter/ios-release`)
+  - Flutter (from `.symlinks/flutter/ios`)
   - image_picker_saver (from `.symlinks/plugins/image_picker_saver/ios`)
   - lamp (from `.symlinks/plugins/lamp/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
@@ -28,7 +28,7 @@ EXTERNAL SOURCES:
   fast_qr_reader_view:
     :path: ".symlinks/plugins/fast_qr_reader_view/ios"
   Flutter:
-    :path: ".symlinks/flutter/ios-release"
+    :path: ".symlinks/flutter/ios"
   image_picker_saver:
     :path: ".symlinks/plugins/image_picker_saver/ios"
   lamp:
