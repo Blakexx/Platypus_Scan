@@ -76,9 +76,6 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context){
-    if(qrController==null||!qRController.value.isInitialized){
-      return new Container(child: new Center(child: new CircularProgressIndicator()));
-    }
     if(MediaQuery.of(context).size.width>MediaQuery.of(context).size.height){
       return new Scaffold(
         body: new Center(
@@ -89,8 +86,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
     return scanned==null?new Scaffold(
       body: new Stack(
         children: [
-          //new QRReaderPreview(qRController),
-          new Container(color:Colors.black),
+          qRController!=null&&!qRController.value.isInitialized?new QRReaderPreview(qRController):new Container(color:Colors.black,child: new Center(child: new CircularProgressIndicator())),
           // ignore: conflicting_dart_import
           new Positioned(child: new Image.asset("assets/topLeft.png",width: MediaQuery.of(context).size.width/12),left:MediaQuery.of(context).size.width/6,top:MediaQuery.of(context).size.height/2-MediaQuery.of(context).size.width/3),
           new Positioned(child: new Image.asset("assets/topRight.png",width: MediaQuery.of(context).size.width/12),right:MediaQuery.of(context).size.width/6,top:MediaQuery.of(context).size.height/2-MediaQuery.of(context).size.width/3),
