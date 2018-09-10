@@ -49,21 +49,24 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
 
   void initState(){
     super.initState();
-    qRController = new QRReaderController(cameras[0], ResolutionPreset.high, CodeFormat.values, (s){
-      if(bottomBarOpen){
-        Navigator.of(context).pop();
-        bottomBarOpen = false;
-      }
-      setState((){scanned = s;});
-    });
-    qRController.initialize().then((n){
-      if(!mounted){
-        return null;
-      }
-      setState((){});
-      qRController.startScanning();
-    });
-  }
+    if(cameras.length>0){
+      qRController = new QRReaderController(cameras[0], ResolutionPreset.high, CodeFormat.values, (s){
+        if(bottomBarOpen){
+          Navigator.of(context).pop();
+          bottomBarOpen = false;
+        }
+        setState((){scanned = s;});
+      });
+      qRController.initialize().then((n){
+        if(!mounted){
+          return null;
+        }
+        setState((){});
+        qRController.startScanning();
+      });
+    }
+    }
+
 
   @override
   void dispose() {
@@ -73,9 +76,11 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
 
   @override
   Widget build(BuildContext context){
+    /*
     if(!qRController.value.isInitialized){
       return new Container(child: new Center(child: new CircularProgressIndicator()));
     }
+    */
     if(MediaQuery.of(context).size.width>MediaQuery.of(context).size.height){
       return new Scaffold(
         body: new Center(
@@ -86,11 +91,13 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
     return scanned==null?new Scaffold(
       body: new Stack(
         children: [
-          new QRReaderPreview(qRController),
-          new Positioned(child: new Container(height:MediaQuery.of(context).size.height,width:MediaQuery.of(context).size.width/6,color:Colors.black12),right:0.0),
-          new Positioned(child: new Container(height:MediaQuery.of(context).size.height,width:MediaQuery.of(context).size.width/6,color:Colors.black12),left:0.0),
-          new Positioned(child: new Container(width:MediaQuery.of(context).size.width/1.5+1,height:(MediaQuery.of(context).size.height-MediaQuery.of(context).size.width/1.5)/2,color:Colors.black12),left:MediaQuery.of(context).size.width/6-.5),
-          new Positioned(child: new Container(width:MediaQuery.of(context).size.width/1.5+1,height:(MediaQuery.of(context).size.height-MediaQuery.of(context).size.width/1.5)/2,color:Colors.black12),left:MediaQuery.of(context).size.width/6-.5,bottom:0.0),
+          //new QRReaderPreview(qRController),
+          new Container(color:Colors.black),
+          // ignore: conflicting_dart_import
+          new Positioned(child: new Image.asset("assets/topLeft.png",width: MediaQuery.of(context).size.width/12),left:MediaQuery.of(context).size.width/6,top:MediaQuery.of(context).size.height/2-MediaQuery.of(context).size.width/3),
+          new Positioned(child: new Image.asset("assets/topRight.png",width: MediaQuery.of(context).size.width/12),right:MediaQuery.of(context).size.width/6,top:MediaQuery.of(context).size.height/2-MediaQuery.of(context).size.width/3),
+          new Positioned(child: new Image.asset("assets/bottomLeft.png",width: MediaQuery.of(context).size.width/12),left:MediaQuery.of(context).size.width/6,bottom:MediaQuery.of(context).size.height/2-MediaQuery.of(context).size.width/3),
+          new Positioned(child: new Image.asset("assets/bottomRight.png",width: MediaQuery.of(context).size.width/12),right:MediaQuery.of(context).size.width/6,bottom:MediaQuery.of(context).size.height/2-MediaQuery.of(context).size.width/3),
           new AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0.0,
@@ -280,7 +287,7 @@ class CreateACodeState extends State<CreateACode>{
       ),
       body: new Container(
         child: new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
-          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(inputFormatters: [new LengthLimitingTextInputFormatter(128/*78*/)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
+          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(inputFormatters: [new LengthLimitingTextInputFormatter(78)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
           new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
           new RaisedButton(child:new Text("Save"),onPressed:(){}),
         ])
