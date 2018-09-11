@@ -296,10 +296,15 @@ class CreateACodeState extends State<CreateACode>{
           new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(focusNode: f,inputFormatters: [new LengthLimitingTextInputFormatter(78)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
           new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
           !f.hasFocus?new RaisedButton(child:new Text("Save"),onPressed:(){
-            createdCodes.add(input);
-            createdInfo.writeData(createdCodes);
-            Scaffold.of(context).removeCurrentSnackBar();
-            Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Saved"),duration: new Duration(milliseconds: 500)));
+            if(input.length>0){
+              createdCodes.add(input);
+              createdInfo.writeData(createdCodes);
+              Scaffold.of(context).removeCurrentSnackBar();
+              Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Saved"),duration: new Duration(milliseconds: 500)));
+            }else{
+              Scaffold.of(context).removeCurrentSnackBar();
+              Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Failed: Please enter text"),duration: new Duration(milliseconds: 500)));
+            }
           }):new Container(),
         ])
       ))
@@ -330,6 +335,7 @@ class HistoryPageState extends State<HistoryPage>{
                   delegate: new SliverChildBuilderDelegate((BuildContext context, int index) {
                         return new Column(children: [new Slidable(
                           delegate: new SlidableDrawerDelegate(),
+                          key: new ObjectKey(createdCodes.length-index-1),
                           actionExtentRatio: 0.25,
                           child: new Container(
                             color: Colors.white,
@@ -364,7 +370,6 @@ class HistoryPageState extends State<HistoryPage>{
                               color: Colors.red,
                               icon: Icons.delete,
                               onTap: (){
-                                Slidable.of(context).dismiss();
                                 setState((){createdCodes.removeAt(createdCodes.length-index-1);});
                                 createdInfo.writeData(createdCodes);
                                 Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Deleted"),duration: new Duration(milliseconds: 500)));
