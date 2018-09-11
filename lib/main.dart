@@ -120,21 +120,12 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                       children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black38))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
-                          if(qRController!=null){
-                            qRController.stopScanning();
-                          }
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
                         }else if(s=="Decode from a Picture"){
 
                         }else if(s=="History"){
-                          if(qRController!=null){
-                            qRController.stopScanning();
-                          }
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new HistoryPage()));
                         }else if(s=="Website"){
-                          if(qRController!=null){
-                            qRController.stopScanning();
-                          }
                           const url = 'https://www.platypus.land';
                           if(await canLaunch(url)){
                             await launch(url);
@@ -180,6 +171,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                     if(!isHttps&&(url.length<7||url.substring(0,7)!="http://")){
                       url = "http://"+url;
                     }
+                    if(await canLaunch(url)){
+                      await launch(url);
+                      return;
+                    }
                     if(url.length<11+(isHttps?1:0)||url.substring(7+(isHttps?1:0),11+(isHttps?1:0))!="www."){
                       url = (isHttps?"https://":"http://")+"www."+url.substring(7+(isHttps?1:0));
                     }
@@ -220,6 +215,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                       if(isUrl){
                         if(!isHttps&&(url.length<7||url.substring(0,7)!="http://")){
                           url = "http://"+url;
+                        }
+                        if(await canLaunch(url)){
+                          await launch(url);
+                          return;
                         }
                         if(url.length<11+(isHttps?1:0)||url.substring(7+(isHttps?1:0),11+(isHttps?1:0))!="www."){
                           url = (isHttps?"https://":"http://")+"www."+url.substring(7+(isHttps?1:0));
