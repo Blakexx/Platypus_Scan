@@ -20,7 +20,13 @@ List<CameraDescription> cameras;
 
 bool lightOn = false;
 
+List createdCodes;
+
+PersistentData createdInfo = new PersistentData(directory: "created");
+
 void main() async{
+  createdCodes = (await createdInfo.readData());
+  createdCodes = createdCodes!=null?createdCodes:new List();
   SystemChrome.setEnabledSystemUIOverlays([]);
   if(Platform.isAndroid){
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -38,12 +44,9 @@ class HomePage extends StatefulWidget{
 
 class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
 
-
   bool bottomBarOpen = false;
 
   String scanned;
-
-  final GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
 
   QRReaderController qRController;
 
@@ -117,12 +120,21 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                       children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black38))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
+                          if(qRController!=null){
+                            qRController.stopScanning();
+                          }
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
                         }else if(s=="Decode from a Picture"){
 
                         }else if(s=="History"){
-
+                          if(qRController!=null){
+                            qRController.stopScanning();
+                          }
+                          Navigator.push(context,new MaterialPageRoute(builder: (context) => new HistoryPage()));
                         }else if(s=="Website"){
+                          if(qRController!=null){
+                            qRController.stopScanning();
+                          }
                           const url = 'https://www.platypus.land';
                           if(await canLaunch(url)){
                             await launch(url);
@@ -149,8 +161,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
         ]
       )
     ):new Scaffold(
-      key: scaffoldKey,
-      body: new Container(
+      body: new Builder(builder:(context)=>new Container(
         child: new Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -196,8 +207,8 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                     child: new Text("Copy to clipboard"),
                     onPressed: () async{
                       await Clipboard.setData(new ClipboardData(text:scanned));
-                      scaffoldKey.currentState.removeCurrentSnackBar();
-                      scaffoldKey.currentState.showSnackBar(new SnackBar(content:new Text("Copied"),duration: new Duration(milliseconds: 500)));
+                      Scaffold.of(context).removeCurrentSnackBar();
+                      Scaffold.of(context).showSnackBar(new SnackBar(content:new Text("Copied"),duration: new Duration(milliseconds: 500)));
                     }
                 ),
                 new RaisedButton(
@@ -240,7 +251,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
             )
           ]
         )
-      )
+      ))
     );
   }
 }
@@ -253,6 +264,8 @@ class CreateACode extends StatefulWidget{
 class CreateACodeState extends State<CreateACode>{
 
   String input = "";
+
+  FocusNode f = new FocusNode();
 
   TextEditingController c = new TextEditingController();
 
@@ -274,18 +287,129 @@ class CreateACodeState extends State<CreateACode>{
               final tempDir = await getTemporaryDirectory();
               final file = await new File('${tempDir.path}/image.png').create();
               await file.writeAsBytes(pngBytes);
-
             }
           )
         ]
       ),
-      body: new Container(
+      body: new Builder(builder: (context)=>new Container(
         child: new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
-          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(inputFormatters: [new LengthLimitingTextInputFormatter(78)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
+          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(focusNode: f,inputFormatters: [new LengthLimitingTextInputFormatter(78)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
           new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
-          new RaisedButton(child:new Text("Save"),onPressed:(){}),
+          !f.hasFocus?new RaisedButton(child:new Text("Save"),onPressed:(){
+            createdCodes.add(input);
+            createdInfo.writeData(createdCodes);
+            Scaffold.of(context).removeCurrentSnackBar();
+            Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Saved"),duration: new Duration(milliseconds: 500)));
+          }):new Container(),
         ])
+      ))
+    );
+  }
+}
+
+class HistoryPage extends StatefulWidget{
+  @override
+  HistoryPageState createState() => new HistoryPageState();
+}
+
+class HistoryPageState extends State<HistoryPage>{
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+      body: new Container(
+          child: new CustomScrollView(
+              slivers: [
+                const SliverAppBar(
+                  pinned: false,
+                  floating: true,
+                  flexibleSpace: const FlexibleSpaceBar(
+                      title: const Text("History")
+                  ),
+                ),
+                new SliverList(
+                  delegate: new SliverChildBuilderDelegate((BuildContext context, int index) {
+                        return new Column(children: [new Slidable(
+                          delegate: new SlidableDrawerDelegate(),
+                          actionExtentRatio: 0.25,
+                          child: new Container(
+                            color: Colors.white,
+                            child: new ListTile(
+                              leading: new QrImage(data:createdCodes[createdCodes.length-index-1],size:50.0),
+                              title: new Text(createdCodes[createdCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis)
+                            ),
+                          ),
+                          actions: <Widget>[
+                            new IconSlideAction(
+                              caption: 'Share',
+                              color: Colors.blue,
+                              icon: Icons.share,
+                              onTap: (){
+
+                                Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Shared"),duration: new Duration(milliseconds: 500)));
+                              },
+                            ),
+                            new IconSlideAction(
+                              caption: 'Copy',
+                              color: Colors.indigo,
+                              icon: Icons.archive,
+                              onTap: () async{
+                                await Clipboard.setData(new ClipboardData(text:createdCodes[createdCodes.length-index-1]));
+                                Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Copied"),duration: new Duration(milliseconds: 500)));
+                              },
+                            ),
+                          ],
+                          secondaryActions: [
+                            new IconSlideAction(
+                              caption: 'Delete',
+                              color: Colors.red,
+                              icon: Icons.delete,
+                              onTap: (){
+                                Slidable.of(context).dismiss();
+                                setState((){createdCodes.removeAt(createdCodes.length-index-1);});
+                                createdInfo.writeData(createdCodes);
+                                Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Deleted"),duration: new Duration(milliseconds: 500)));
+                              },
+                            ),
+                          ]
+                        ),new Container(height:.5,color:Colors.black38)]);
+                      },
+                      childCount: createdCodes.length
+                  ),
+                )
+              ]
+          )
       )
     );
   }
+}
+
+class PersistentData{
+
+  PersistentData({@required this.directory});
+
+  String directory;
+
+  Future<String> get _localPath async {
+    return (await getApplicationDocumentsDirectory()).path;
+  }
+
+  Future<File> get _localFile async {
+    final path = await _localPath;
+    return new File('$path/$directory.txt');
+  }
+
+  Future<dynamic> readData() async {
+    try {
+      final file = await _localFile;
+      return json.decode(await file.readAsString());
+    } catch (e) {
+      return null;
+    }
+  }
+
+  Future<File> writeData(dynamic data) async {
+    final file = await _localFile;
+    return file.writeAsString(json.encode(data));
+  }
+
 }
