@@ -295,8 +295,8 @@ class CreateACodeState extends State<CreateACode>{
                 final tempDir = await getTemporaryDirectory();
                 final file = await new File('${tempDir.path}/image.png').create();
                 await file.writeAsBytes(pngBytes);
-                final channel = const MethodChannel('channel:me.platypus.share/share');
-                channel.invokeMethod('shareFile', 'image.jpg');
+                final channel = const MethodChannel('channel:land.platypus.share/share');
+                channel.invokeMethod('shareFile', 'image.png');
               }catch(e){
                 print(e);
               }
@@ -332,17 +332,7 @@ class HistoryPage extends StatefulWidget{
 
 class HistoryPageState extends State<HistoryPage>{
 
-  List<GlobalKey> globalKeyList = new List<GlobalKey>(savedCodes.length);
-
   GlobalKey expandedKey = new GlobalKey();
-
-  @override
-  void initState(){
-    super.initState();
-    for(int i = 0; i<globalKeyList.length;i++){
-      globalKeyList[i] = new GlobalKey();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -369,7 +359,7 @@ class HistoryPageState extends State<HistoryPage>{
                             child: new MaterialButton(onPressed:() async{
                               Navigator.push(context,new MaterialPageRoute(builder: (context) => new QRView(savedCodes[savedCodes.length-index-1])));
                             },child:new Center(child: new ListTile(
-                              leading: new RepaintBoundary(key:globalKeyList[globalKeyList.length-index-1],child:new QrImage(data:savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/10)),
+                              leading: new QrImage(data:savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/10),
                               title: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis,style: new TextStyle(color:Colors.blue)):new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis)
                             )),minWidth: double.infinity),
                           ),
@@ -413,20 +403,21 @@ class HistoryPageState extends State<HistoryPage>{
                                         throw 'Could not launch $url';
                                       }
                                     }
-                                )):new Text(savedCodes[savedCodes.length-index-1],style:new TextStyle(color:Colors.black),maxLines:3,overflow: TextOverflow.ellipsis)]),new RaisedButton(onPressed:(){Share.share(savedCodes[savedCodes.length-index-1]);},child: new Text("Share text")),new RaisedButton(onPressed:(){},child: new Text("Share image")),new RaisedButton(onPressed:(){Navigator.of(context).pop();},child: new Text("Close"))]))));
-                                /*try{
-                                  RenderRepaintBoundary boundary = globalKeyList[savedCodes.length-index-1].currentContext.findRenderObject();
-                                  var image = await boundary.toImage();
-                                  ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
-                                  Uint8List pngBytes = byteData.buffer.asUint8List();
-                                  final tempDir = await getTemporaryDirectory();
-                                  final file = await new File('${tempDir.path}/image.png').create();
-                                  await file.writeAsBytes(pngBytes);
-                                  final channel = const MethodChannel('channel:me.platypus.share/share');
-                                  channel.invokeMethod('shareFile', 'image.jpg');
-                                }catch(e){
-                                  print(e);
-                                }*/
+                                )):new Text(savedCodes[savedCodes.length-index-1],style:new TextStyle(color:Colors.black),maxLines:3,overflow: TextOverflow.ellipsis)]),new RaisedButton(onPressed:(){Share.share(savedCodes[savedCodes.length-index-1]);},child: new Text("Share text")),new RaisedButton(onPressed:() async{
+                                  try{
+                                    RenderRepaintBoundary boundary = expandedKey.currentContext.findRenderObject();
+                                    var image = await boundary.toImage();
+                                    ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+                                    Uint8List pngBytes = byteData.buffer.asUint8List();
+                                    final tempDir = await getTemporaryDirectory();
+                                    final file = await new File('${tempDir.path}/image.png').create();
+                                    await file.writeAsBytes(pngBytes);
+                                    final channel = const MethodChannel('channel:land.platypus.share/share');
+                                    channel.invokeMethod('shareFile', 'image.png');
+                                  }catch(e){
+                                    print(e);
+                                  }
+                                },child: new Text("Share image")),new RaisedButton(onPressed:(){Navigator.of(context).pop();},child: new Text("Close"))]))));
                               },
                             ),
                             new IconSlideAction(
@@ -458,7 +449,8 @@ class HistoryPageState extends State<HistoryPage>{
                               Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Deleted"),duration: new Duration(milliseconds: 500)));
                             },
                             dismissThresholds: <SlideActionType, double>{
-                              SlideActionType.primary: 1.0
+                              SlideActionType.primary: 1.0,
+                              SlideActionType.secondary: .5
                             }
                           ),
                         ),new Container(height:.5,color:Colors.black38)]);
@@ -502,8 +494,8 @@ class QRViewState extends State<QRView>{
                   final tempDir = await getTemporaryDirectory();
                   final file = await new File('${tempDir.path}/image.png').create();
                   await file.writeAsBytes(pngBytes);
-                  final channel = const MethodChannel('channel:me.platypus.share/share');
-                  channel.invokeMethod('shareFile', 'image.jpg');
+                  final channel = const MethodChannel('channel:land.platypus.share/share');
+                  channel.invokeMethod('shareFile', 'image.png');
                 }catch(e){
                   print(e);
                 }
