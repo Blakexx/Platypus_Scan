@@ -8,28 +8,33 @@ PODS:
     - Flutter
   - path_provider (0.0.1):
     - Flutter
+  - share (0.5.2):
+    - Flutter
   - url_launcher (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - fast_qr_reader_view (from `.symlinks/plugins/fast_qr_reader_view/ios`)
-  - Flutter (from `.symlinks/flutter/ios-release`)
+  - Flutter (from `.symlinks/flutter/ios`)
   - image_picker_saver (from `.symlinks/plugins/image_picker_saver/ios`)
   - lamp (from `.symlinks/plugins/lamp/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
+  - share (from `.symlinks/plugins/share/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
 
 EXTERNAL SOURCES:
   fast_qr_reader_view:
     :path: ".symlinks/plugins/fast_qr_reader_view/ios"
   Flutter:
-    :path: ".symlinks/flutter/ios-release"
+    :path: ".symlinks/flutter/ios"
   image_picker_saver:
     :path: ".symlinks/plugins/image_picker_saver/ios"
   lamp:
     :path: ".symlinks/plugins/lamp/ios"
   path_provider:
     :path: ".symlinks/plugins/path_provider/ios"
+  share:
+    :path: ".symlinks/plugins/share/ios"
   url_launcher:
     :path: ".symlinks/plugins/url_launcher/ios"
 
@@ -39,6 +44,7 @@ SPEC CHECKSUMS:
   image_picker_saver: c674305b2e535d97afabfdff4e036f5da73e0167
   lamp: e9d97bbbb2352fa8f1323410f0091da30f8f454d
   path_provider: 09407919825bfe3c2deae39453b7a5b44f467873
+  share: 222b5dcc8031238af9d7de91149df65bad1aef75
   url_launcher: 92b89c1029a0373879933c21642958c874539095
 
 PODFILE CHECKSUM: 1e5af4103afd21ca5ead147d7b81d06f494f51a2

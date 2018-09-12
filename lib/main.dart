@@ -13,6 +13,7 @@ import 'dart:ui';
 import 'package:flutter/rendering.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:convert';
+import 'package:share/share.dart';
 import 'package:image_picker_saver/image_picker_saver.dart';
 
 
@@ -20,21 +21,19 @@ List<CameraDescription> cameras;
 
 bool lightOn = false;
 
-List createdCodes;
+List savedCodes;
 
-PersistentData createdInfo = new PersistentData(directory: "created");
+PersistentData savedInfo = new PersistentData(directory: "saved");
 
 void main() async{
-  createdCodes = (await createdInfo.readData());
-  createdCodes = createdCodes!=null?createdCodes:new List();
+  savedCodes = (await savedInfo.readData());
+  savedCodes = savedCodes!=null?savedCodes:new List();
   SystemChrome.setEnabledSystemUIOverlays([]);
   if(Platform.isAndroid){
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
   cameras = await availableCameras();
-  runApp(new MaterialApp(
-      home: new HomePage()
-  ));
+  runApp(new MaterialApp(debugShowCheckedModeBanner: false,home: new HomePage()));
 }
 
 class HomePage extends StatefulWidget{
@@ -58,7 +57,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
           Navigator.of(context).pop();
           bottomBarOpen = false;
         }
+        qRController.stopScanning();
         setState((){scanned = s;});
+        savedCodes.add(s);
+        savedInfo.writeData(savedCodes);
       });
       qRController.initialize().then((n){
         if(!mounted){
@@ -241,6 +243,12 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                 )
               ]
             ),
+            new RaisedButton(child:new Text("Save"),onPressed:(){
+              savedCodes.add(scanned);
+              savedInfo.writeData(savedCodes);
+              Scaffold.of(context).removeCurrentSnackBar();
+              Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Saved"),duration: new Duration(milliseconds: 500)));
+            }),
             new RaisedButton(
                 child: new Text("Done"),
                 onPressed: (){
@@ -279,13 +287,19 @@ class CreateACodeState extends State<CreateACode>{
           new IconButton(
             icon: new Icon(Icons.share),
             onPressed: () async{
-              RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
-              var image = await boundary.toImage();
-              ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
-              Uint8List pngBytes = byteData.buffer.asUint8List();
-              final tempDir = await getTemporaryDirectory();
-              final file = await new File('${tempDir.path}/image.png').create();
-              await file.writeAsBytes(pngBytes);
+              try{
+                RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
+                var image = await boundary.toImage();
+                ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+                Uint8List pngBytes = byteData.buffer.asUint8List();
+                final tempDir = await getTemporaryDirectory();
+                final file = await new File('${tempDir.path}/image.png').create();
+                await file.writeAsBytes(pngBytes);
+                final channel = const MethodChannel('channel:me.platypus.share/share');
+                channel.invokeMethod('shareFile', 'image.jpg');
+              }catch(e){
+                print(e);
+              }
             }
           )
         ]
@@ -296,8 +310,8 @@ class CreateACodeState extends State<CreateACode>{
           new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
           !f.hasFocus?new RaisedButton(child:new Text("Save"),onPressed:(){
             if(input.length>0){
-              createdCodes.add(input);
-              createdInfo.writeData(createdCodes);
+              savedCodes.add(input);
+              savedInfo.writeData(savedCodes);
               Scaffold.of(context).removeCurrentSnackBar();
               Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Saved"),duration: new Duration(milliseconds: 500)));
             }else{
@@ -317,6 +331,19 @@ class HistoryPage extends StatefulWidget{
 }
 
 class HistoryPageState extends State<HistoryPage>{
+
+  List<GlobalKey> globalKeyList = new List<GlobalKey>(savedCodes.length);
+
+  GlobalKey expandedKey = new GlobalKey();
+
+  @override
+  void initState(){
+    super.initState();
+    for(int i = 0; i<globalKeyList.length;i++){
+      globalKeyList[i] = new GlobalKey();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
@@ -333,24 +360,73 @@ class HistoryPageState extends State<HistoryPage>{
                 new SliverList(
                   delegate: new SliverChildBuilderDelegate((BuildContext context, int index) {
                         return new Column(children: [new Slidable(
-                          delegate: new SlidableDrawerDelegate(),
-                          key: new ObjectKey(createdCodes.length-index-1),
+                          delegate: new SlidableScrollDelegate(),
+                          key: new ObjectKey(savedCodes.length-index-1),
                           actionExtentRatio: 0.25,
                           child: new Container(
+                            height:MediaQuery.of(context).size.height/8,
                             color: Colors.white,
-                            child: new ListTile(
-                              leading: new QrImage(data:createdCodes[createdCodes.length-index-1],size:50.0),
-                              title: new Text(createdCodes[createdCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis)
-                            ),
+                            child: new MaterialButton(onPressed:() async{
+                              Navigator.push(context,new MaterialPageRoute(builder: (context) => new QRView(savedCodes[savedCodes.length-index-1])));
+                            },child:new Center(child: new ListTile(
+                              leading: new RepaintBoundary(key:globalKeyList[globalKeyList.length-index-1],child:new QrImage(data:savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/10)),
+                              title: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis,style: new TextStyle(color:Colors.blue)):new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis)
+                            )),minWidth: double.infinity),
                           ),
                           actions: <Widget>[
                             new IconSlideAction(
                               caption: 'Share',
                               color: Colors.blue,
                               icon: Icons.share,
-                              onTap: (){
-
-                                Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Shared"),duration: new Duration(milliseconds: 500)));
+                              onTap: () async{
+                                showDialog(context:context,builder: (context)=> new AlertDialog(title: new Center(child:new Text("Share")),content: new Center(child:new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children:[new Column(children:[new RepaintBoundary(key:expandedKey,child:new QrImage(data: savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/3)),new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?new RichText(text:new TextSpan(
+                                    text: savedCodes[savedCodes.length-index-1],
+                                    // ignore: conflicting_dart_import
+                                    style: new TextStyle(color: Colors.blue),
+                                    recognizer: new TapGestureRecognizer()..onTap = () async{
+                                      bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase());
+                                      String url = isUrl?Uri.encodeFull(savedCodes[savedCodes.length-index-1]).toString():"https://www.google.com/search?q=${Uri.encodeComponent(savedCodes[savedCodes.length-index-1])}";
+                                      bool isHttps = url.length>=8&&url.substring(0,8)=="https://";
+                                      if(isUrl){
+                                        if(!isHttps&&(url.length<7||url.substring(0,7)!="http://")){
+                                          url = "http://"+url;
+                                        }
+                                        if(await canLaunch(url)){
+                                          await launch(url);
+                                          return;
+                                        }
+                                        if(url.length<11+(isHttps?1:0)||url.substring(7+(isHttps?1:0),11+(isHttps?1:0))!="www."){
+                                          url = (isHttps?"https://":"http://")+"www."+url.substring(7+(isHttps?1:0));
+                                        }
+                                      }
+                                      if(await canLaunch(url)){
+                                        await launch(url);
+                                      }else{
+                                        if(isUrl){
+                                          String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(savedCodes[savedCodes.length-index-1])}";
+                                          if(await canLaunch(url2)){
+                                            await launch(url2);
+                                          }else{
+                                            throw 'Could not launch $url2';
+                                          }
+                                        }
+                                        throw 'Could not launch $url';
+                                      }
+                                    }
+                                )):new Text(savedCodes[savedCodes.length-index-1],style:new TextStyle(color:Colors.black),maxLines:3,overflow: TextOverflow.ellipsis)]),new RaisedButton(onPressed:(){Share.share(savedCodes[savedCodes.length-index-1]);},child: new Text("Share text")),new RaisedButton(onPressed:(){},child: new Text("Share image")),new RaisedButton(onPressed:(){Navigator.of(context).pop();},child: new Text("Close"))]))));
+                                /*try{
+                                  RenderRepaintBoundary boundary = globalKeyList[savedCodes.length-index-1].currentContext.findRenderObject();
+                                  var image = await boundary.toImage();
+                                  ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+                                  Uint8List pngBytes = byteData.buffer.asUint8List();
+                                  final tempDir = await getTemporaryDirectory();
+                                  final file = await new File('${tempDir.path}/image.png').create();
+                                  await file.writeAsBytes(pngBytes);
+                                  final channel = const MethodChannel('channel:me.platypus.share/share');
+                                  channel.invokeMethod('shareFile', 'image.jpg');
+                                }catch(e){
+                                  print(e);
+                                }*/
                               },
                             ),
                             new IconSlideAction(
@@ -358,7 +434,7 @@ class HistoryPageState extends State<HistoryPage>{
                               color: Colors.indigo,
                               icon: Icons.archive,
                               onTap: () async{
-                                await Clipboard.setData(new ClipboardData(text:createdCodes[createdCodes.length-index-1]));
+                                await Clipboard.setData(new ClipboardData(text:savedCodes[savedCodes.length-index-1]));
                                 Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Copied"),duration: new Duration(milliseconds: 500)));
                               },
                             ),
@@ -369,20 +445,164 @@ class HistoryPageState extends State<HistoryPage>{
                               color: Colors.red,
                               icon: Icons.delete,
                               onTap: (){
-                                setState((){createdCodes.removeAt(createdCodes.length-index-1);});
-                                createdInfo.writeData(createdCodes);
+                                setState((){savedCodes.removeAt(savedCodes.length-index-1);});
+                                savedInfo.writeData(savedCodes);
                                 Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Deleted"),duration: new Duration(milliseconds: 500)));
                               },
                             ),
-                          ]
+                          ],
+                          slideToDismissDelegate: new SlideToDismissDrawerDelegate(
+                            onDismissed: (actionType){
+                              setState((){savedCodes.removeAt(savedCodes.length-index-1);});
+                              savedInfo.writeData(savedCodes);
+                              Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Deleted"),duration: new Duration(milliseconds: 500)));
+                            },
+                            dismissThresholds: <SlideActionType, double>{
+                              SlideActionType.primary: 1.0
+                            }
+                          ),
                         ),new Container(height:.5,color:Colors.black38)]);
                       },
-                      childCount: createdCodes.length
+                      childCount: savedCodes.length
                   ),
                 )
               ]
           )
       )
+    );
+  }
+}
+
+class QRView extends StatefulWidget{
+
+  String text;
+
+  QRView(this.text);
+
+  @override
+  QRViewState createState() => new QRViewState();
+}
+
+class QRViewState extends State<QRView>{
+
+  GlobalKey globalKey = new GlobalKey();
+
+  @override
+  Widget build(BuildContext context) {
+    return new Scaffold(
+        appBar: new AppBar(title: new Text("QR Code"),actions: [
+          new IconButton(
+              icon: new Icon(Icons.share),
+              onPressed: () async{
+                try{
+                  RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
+                  var image = await boundary.toImage();
+                  ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+                  Uint8List pngBytes = byteData.buffer.asUint8List();
+                  final tempDir = await getTemporaryDirectory();
+                  final file = await new File('${tempDir.path}/image.png').create();
+                  await file.writeAsBytes(pngBytes);
+                  final channel = const MethodChannel('channel:me.platypus.share/share');
+                  channel.invokeMethod('shareFile', 'image.jpg');
+                }catch(e){
+                  print(e);
+                }
+              }
+          )
+        ]),
+        body: new Builder(builder:(context)=>new Container(
+            child: new Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  new Padding(padding: EdgeInsets.only(left:30.0,right:30.0),child:new Container(
+                      padding: EdgeInsets.all(15.0),
+                      color: Colors.black12,
+                      child: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(widget.text.toLowerCase())?new RichText(text:new TextSpan(
+                          text: widget.text,
+                          // ignore: conflicting_dart_import
+                          style: new TextStyle(color: Colors.blue),
+                          recognizer: new TapGestureRecognizer()..onTap = () async{
+                            bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(widget.text.toLowerCase());
+                            String url = isUrl?Uri.encodeFull(widget.text).toString():"https://www.google.com/search?q=${Uri.encodeComponent(widget.text)}";
+                            bool isHttps = url.length>=8&&url.substring(0,8)=="https://";
+                            if(isUrl){
+                              if(!isHttps&&(url.length<7||url.substring(0,7)!="http://")){
+                                url = "http://"+url;
+                              }
+                              if(await canLaunch(url)){
+                                await launch(url);
+                                return;
+                              }
+                              if(url.length<11+(isHttps?1:0)||url.substring(7+(isHttps?1:0),11+(isHttps?1:0))!="www."){
+                                url = (isHttps?"https://":"http://")+"www."+url.substring(7+(isHttps?1:0));
+                              }
+                            }
+                            if(await canLaunch(url)){
+                              await launch(url);
+                            }else{
+                              if(isUrl){
+                                String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(widget.text)}";
+                                if(await canLaunch(url2)){
+                                  await launch(url2);
+                                }else{
+                                  throw 'Could not launch $url2';
+                                }
+                              }
+                              throw 'Could not launch $url';
+                            }
+                          }
+                      )):new Text(widget.text,style:new TextStyle(color:Colors.black),maxLines:4,overflow: TextOverflow.ellipsis)
+                  )),
+                  new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:widget.text,size:MediaQuery.of(context).size.height/3))),
+                  new Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        new RaisedButton(
+                            child: new Text("Copy to clipboard"),
+                            onPressed: () async{
+                              await Clipboard.setData(new ClipboardData(text:widget.text));
+                              Scaffold.of(context).removeCurrentSnackBar();
+                              Scaffold.of(context).showSnackBar(new SnackBar(content:new Text("Copied"),duration: new Duration(milliseconds: 500)));
+                            }
+                        ),
+                        new RaisedButton(
+                            child: new Text("Open in browser"),
+                            onPressed: () async{
+                              bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(widget.text.toLowerCase());
+                              String url = isUrl?Uri.encodeFull(widget.text).toString():"https://www.google.com/search?q=${Uri.encodeComponent(widget.text)}";
+                              bool isHttps = url.length>=8&&url.substring(0,8)=="https://";
+                              if(isUrl){
+                                if(!isHttps&&(url.length<7||url.substring(0,7)!="http://")){
+                                  url = "http://"+url;
+                                }
+                                if(await canLaunch(url)){
+                                  await launch(url);
+                                  return;
+                                }
+                                if(url.length<11+(isHttps?1:0)||url.substring(7+(isHttps?1:0),11+(isHttps?1:0))!="www."){
+                                  url = (isHttps?"https://":"http://")+"www."+url.substring(7+(isHttps?1:0));
+                                }
+                              }
+                              if(await canLaunch(url)){
+                                await launch(url);
+                              }else{
+                                if(isUrl){
+                                  String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(widget.text)}";
+                                  if(await canLaunch(url2)){
+                                    await launch(url2);
+                                  }else{
+                                    throw 'Could not launch $url2';
+                                  }
+                                }
+                                throw 'Could not launch $url';
+                              }
+                            }
+                        )
+                      ]
+                  )
+                ]
+            )
+        ))
     );
   }
 }

@@ -15,6 +15,7 @@ dependencies:
   path_provider:
   flutter_slidable:
   image_picker_saver:
+  share:
 
 dev_dependencies:
   flutter_test:
