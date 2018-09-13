@@ -284,24 +284,29 @@ class CreateACodeState extends State<CreateACode>{
       appBar: new AppBar(
         title: new Text("Create a Code"),
         actions: [
-          new IconButton(
+          new Builder(builder: (context)=>new IconButton(
             icon: new Icon(Icons.share),
             onPressed: () async{
               try{
-                RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
-                var image = await boundary.toImage();
-                ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
-                Uint8List pngBytes = byteData.buffer.asUint8List();
-                final tempDir = await getTemporaryDirectory();
-                final file = await new File('${tempDir.path}/image.png').create();
-                await file.writeAsBytes(pngBytes);
-                final channel = const MethodChannel('channel:land.platypus.share/share');
-                channel.invokeMethod('shareFile', 'image.png');
+                if(input!=null&&input.length>1){
+                  RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
+                  var image = await boundary.toImage();
+                  ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+                  Uint8List pngBytes = byteData.buffer.asUint8List();
+                  final tempDir = await getTemporaryDirectory();
+                  final file = await new File('${tempDir.path}/image.png').create();
+                  await file.writeAsBytes(pngBytes);
+                  final channel = const MethodChannel('channel:land.platypus.share/share');
+                  channel.invokeMethod('shareFile', 'image.png');
+                }else{
+                  Scaffold.of(context).removeCurrentSnackBar();
+                  Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Failed: Please enter text"),duration: new Duration(milliseconds: 500)));
+                }
               }catch(e){
                 print(e);
               }
             }
-          )
+          ))
         ]
       ),
       body: new Builder(builder: (context)=>new Container(

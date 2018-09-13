@@ -5,8 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d93d496c-76e7-4263-bdb1-8f240d4076c8" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/ios/Runner/Info.plist" afterPath="$PROJECT_DIR$/ios/Runner/Info.plist" />
       <change beforePath="$PROJECT_DIR$/lib/main.dart" afterPath="$PROJECT_DIR$/lib/main.dart" />
     </list>
     <ignored path="$PROJECT_DIR$/.dart_tool/" />
@@ -25,8 +23,8 @@
       <file leaf-file-name="main.dart" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/lib/main.dart">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="198">
-              <caret line="126" column="26" lean-forward="false" selection-start-line="126" selection-start-column="26" selection-end-line="126" selection-end-column="26" />
+            <state relative-caret-position="77">
+              <caret line="286" column="57" lean-forward="false" selection-start-line="286" selection-start-column="57" selection-end-line="286" selection-end-column="57" />
               <folding>
                 <element signature="e#0#39#0" expanded="true" />
               </folding>
@@ -128,7 +126,6 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>AppBar</find>
-      <find>Share</find>
       <find>url =</find>
       <find>QRImage</find>
       <find>AlertDial</find>
@@ -157,6 +154,7 @@
       <find>COlors.black</find>
       <find>:Colors.black</find>
       <find>&quot;Create a</find>
+      <find>Share</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -820,8 +818,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/lib/main.dart">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="198">
-          <caret line="126" column="26" lean-forward="false" selection-start-line="126" selection-start-column="26" selection-end-line="126" selection-end-column="26" />
+        <state relative-caret-position="77">
+          <caret line="286" column="57" lean-forward="false" selection-start-line="286" selection-start-column="57" selection-end-line="286" selection-end-column="57" />
           <folding>
             <element signature="e#0#39#0" expanded="true" />
           </folding>
