@@ -382,12 +382,62 @@ class HistoryPageState extends State<HistoryPage>{
                           child: new Container(
                             height:MediaQuery.of(context).size.height/8,
                             color: Colors.white,
-                            child: new MaterialButton(onPressed:() async{
+                            child: new GestureDetector(onLongPress: (){
+                              showDialog(context:context,builder: (context)=> new AlertDialog(title: new Center(child:new Text("Share")),content: new Center(child:new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children:[new Column(children:[new RepaintBoundary(key:expandedKey,child:new QrImage(data: savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/3)),new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?new RichText(text:new TextSpan(
+                                  text: savedCodes[savedCodes.length-index-1],
+                                  // ignore: conflicting_dart_import
+                                  style: new TextStyle(color: Colors.blue),
+                                  recognizer: new TapGestureRecognizer()..onTap = () async{
+                                    bool isUrl = new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase());
+                                    String url = isUrl?Uri.encodeFull(savedCodes[savedCodes.length-index-1]).toString():"https://www.google.com/search?q=${Uri.encodeComponent(savedCodes[savedCodes.length-index-1])}";
+                                    bool isHttps = url.length>=8&&url.substring(0,8)=="https://";
+                                    if(isUrl){
+                                      if(!isHttps&&(url.length<7||url.substring(0,7)!="http://")){
+                                        url = "http://"+url;
+                                      }
+                                      if(await canLaunch(url)){
+                                        await launch(url);
+                                        return;
+                                      }
+                                      if(url.length<11+(isHttps?1:0)||url.substring(7+(isHttps?1:0),11+(isHttps?1:0))!="www."){
+                                        url = (isHttps?"https://":"http://")+"www."+url.substring(7+(isHttps?1:0));
+                                      }
+                                    }
+                                    if(await canLaunch(url)){
+                                      await launch(url);
+                                    }else{
+                                      if(isUrl){
+                                        String url2 = "https://www.google.com/search?q=${Uri.encodeComponent(savedCodes[savedCodes.length-index-1])}";
+                                        if(await canLaunch(url2)){
+                                          await launch(url2);
+                                        }else{
+                                          throw 'Could not launch $url2';
+                                        }
+                                      }
+                                      throw 'Could not launch $url';
+                                    }
+                                  }
+                              )):new Text(savedCodes[savedCodes.length-index-1],style:new TextStyle(color:Colors.black),maxLines:3,overflow: TextOverflow.ellipsis)]),new RaisedButton(onPressed:(){Share.share(savedCodes[savedCodes.length-index-1]);},child: new Text("Share text")),new RaisedButton(onPressed:() async{
+                                try{
+                                  RenderRepaintBoundary boundary = expandedKey.currentContext.findRenderObject();
+                                  var image = await boundary.toImage();
+                                  ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
+                                  Uint8List pngBytes = byteData.buffer.asUint8List();
+                                  final tempDir = await getTemporaryDirectory();
+                                  final file = await new File('${tempDir.path}/image.png').create();
+                                  await file.writeAsBytes(pngBytes);
+                                  final channel = const MethodChannel('channel:land.platypus.share/share');
+                                  channel.invokeMethod('shareFile', 'image.png');
+                                }catch(e){
+                                  print(e);
+                                }
+                              },child: new Text("Share image")),new RaisedButton(onPressed:(){Navigator.of(context).pop();},child: new Text("Close"))]))));
+                            },child:new MaterialButton(onPressed:() async{
                               Navigator.push(context,new MaterialPageRoute(builder: (context) => new QRView(savedCodes[savedCodes.length-index-1])));
                             },child:new Center(child: new Row(children:[
                               new QrImage(data:savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/10),
                               new Expanded(child:new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis,style: new TextStyle(color:new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?Colors.blue:Colors.black87)))
-                            ])),minWidth: double.infinity),
+                            ])),minWidth: double.infinity)),
                           ),
                           actions: <Widget>[
                             new IconSlideAction(
