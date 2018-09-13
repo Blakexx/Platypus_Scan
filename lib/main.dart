@@ -25,9 +25,18 @@ List savedCodes;
 
 PersistentData savedInfo = new PersistentData(directory: "saved");
 
+List settings;
+
+PersistentData settingsInfo = new PersistentData(directory: "settings");
+
 void main() async{
   savedCodes = (await savedInfo.readData());
   savedCodes = savedCodes!=null?savedCodes:new List();
+  settings = (await settingsInfo.readData());
+  if(settings==null){
+    settings = new List(3).map((d)=>false).toList();
+    settingsInfo.writeData(settings);
+  }
   SystemChrome.setEnabledSystemUIOverlays([]);
   if(Platform.isAndroid){
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -59,8 +68,10 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
         }
         qRController.stopScanning();
         setState((){scanned = s;});
-        savedCodes.add(s);
-        savedInfo.writeData(savedCodes);
+        if(settings[0]){
+          savedCodes.add(s);
+          savedInfo.writeData(savedCodes);
+        }
       });
       qRController.initialize().then((n){
         if(!mounted){
@@ -119,14 +130,14 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                   showModalBottomSheet(context: context, builder: (context)=> new Container(
                     height: MediaQuery.of(context).size.height/2,
                     child: new Column(
-                      children: ["Create a QR code","Decode from an Image","History","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black38))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
+                      children: ["Create a QR code","History","Settings","Website","Rate us"].map((s)=>new Container(decoration:new BoxDecoration(border: new Border(bottom:new BorderSide(width:.5,color:Colors.black38))),child:new MaterialButton(minWidth:double.infinity,height:MediaQuery.of(context).size.height/10-.5,child:new Text(s),onPressed:() async{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
-                        }else if(s=="Decode from an Image"){
-
                         }else if(s=="History"){
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new HistoryPage()));
+                        }else if(s=="Settings"){
+                          Navigator.push(context,new MaterialPageRoute(builder: (context) => new SettingsPage()));
                         }else if(s=="Website"){
                           const url = 'https://www.platypus.land';
                           if(await canLaunch(url)){
@@ -311,7 +322,7 @@ class CreateACodeState extends State<CreateACode>{
       ),
       body: new Builder(builder: (context)=>new Container(
         child: new Column(mainAxisAlignment: MainAxisAlignment.spaceEvenly,children: [
-          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(focusNode: f,inputFormatters: [new LengthLimitingTextInputFormatter(78)],controller: c,decoration: new InputDecoration(hintText:"Data"),onChanged:(s){setState((){input = s;});})))),
+          new Padding(padding: EdgeInsets.only(left:15.0,right:15.0),child:new Container(color:Colors.black12,child:new Padding(padding:EdgeInsets.only(left:5.0),child:new TextField(focusNode: f,inputFormatters: [new LengthLimitingTextInputFormatter(78)],controller: c,decoration: new InputDecoration(hintText:"Data",border: InputBorder.none),onChanged:(s){setState((){input = s;});})))),
           new Center(child:new RepaintBoundary(key:globalKey,child:new QrImage(data:input,size:MediaQuery.of(context).size.height/3))),
           !f.hasFocus?new RaisedButton(child:new Text("Save"),onPressed:(){
             if(input.length>0){
@@ -370,7 +381,7 @@ class HistoryPageState extends State<HistoryPage>{
                           ),
                           actions: <Widget>[
                             new IconSlideAction(
-                              caption: 'Share',
+                              caption: "Share",
                               color: Colors.blue,
                               icon: Icons.share,
                               onTap: () async{
@@ -426,18 +437,19 @@ class HistoryPageState extends State<HistoryPage>{
                               },
                             ),
                             new IconSlideAction(
-                              caption: 'Copy',
+                              caption: "Copy",
                               color: Colors.indigo,
                               icon: Icons.archive,
                               onTap: () async{
                                 await Clipboard.setData(new ClipboardData(text:savedCodes[savedCodes.length-index-1]));
-                                Scaffold.of(context).removeCurrentSnackBar();Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Copied"),duration: new Duration(milliseconds: 500)));
+                                Scaffold.of(context).removeCurrentSnackBar();
+                                Scaffold.of(context).showSnackBar(new SnackBar(content: new Text("Copied"),duration: new Duration(milliseconds: 500)));
                               },
                             ),
                           ],
                           secondaryActions: [
                             new IconSlideAction(
-                              caption: 'Delete',
+                              caption: "Delete",
                               color: Colors.red,
                               icon: Icons.delete,
                               onTap: (){
@@ -600,6 +612,36 @@ class QRViewState extends State<QRView>{
                 ]
             )
         ))
+    );
+  }
+}
+
+class SettingsPage extends StatefulWidget{
+  @override
+  SettingsPageState createState()=> new SettingsPageState();
+}
+
+class SettingsPageState extends State<SettingsPage>{
+
+  @override
+  Widget build(BuildContext context){
+    return new Scaffold(
+      appBar: new AppBar(title: new Text("Settings")),
+      body: new Container(
+        child: new Center(
+          child: new Column(
+            children: [
+              new MaterialButton(minWidth:double.infinity,onPressed: (){
+                setState((){settings[0] = !settings[0];});
+                settingsInfo.writeData(settings);
+              },child:new Padding(padding:EdgeInsets.only(top:5.0,bottom:5.0),child:new Row(children: [new Expanded(child:new Text("Autosave on scan")),new Switch(value:settings[0],onChanged: (b){
+                setState((){settings[0] = !settings[0];});
+                settingsInfo.writeData(settings);
+              })])))
+            ]
+          )
+        )
+      )
     );
   }
 }
