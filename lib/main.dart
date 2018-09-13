@@ -123,7 +123,7 @@ class HomePageState extends State<HomePage> with SingleTickerProviderStateMixin{
                         Navigator.of(context).pop();
                         if(s=="Create a QR code"){
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new CreateACode()));
-                        }else if(s=="Decode from a Picture"){
+                        }else if(s=="Decode from an Image"){
 
                         }else if(s=="History"){
                           Navigator.push(context,new MaterialPageRoute(builder: (context) => new HistoryPage()));
@@ -358,10 +358,10 @@ class HistoryPageState extends State<HistoryPage>{
                             color: Colors.white,
                             child: new MaterialButton(onPressed:() async{
                               Navigator.push(context,new MaterialPageRoute(builder: (context) => new QRView(savedCodes[savedCodes.length-index-1])));
-                            },child:new Center(child: new ListTile(
-                              leading: new QrImage(data:savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/10),
-                              title: new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis,style: new TextStyle(color:Colors.blue)):new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis)
-                            )),minWidth: double.infinity),
+                            },child:new Center(child: new Row(children:[
+                              new QrImage(data:savedCodes[savedCodes.length-index-1],size:MediaQuery.of(context).size.height/10),
+                              new Expanded(child:new Text(savedCodes[savedCodes.length-index-1],maxLines: 3,overflow: TextOverflow.ellipsis,style: new TextStyle(color:new RegExp("^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?\$").hasMatch(savedCodes[savedCodes.length-index-1].toLowerCase())?Colors.blue:Colors.black87)))
+                            ])),minWidth: double.infinity),
                           ),
                           actions: <Widget>[
                             new IconSlideAction(
