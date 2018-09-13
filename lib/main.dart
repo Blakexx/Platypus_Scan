@@ -18,6 +18,8 @@ import 'package:image_picker_saver/image_picker_saver.dart';
 
 int numSettings = 3;
 
+List namedSettings = ["Autosave on scan"];
+
 List<CameraDescription> cameras;
 
 bool lightOn = false;
@@ -362,6 +364,7 @@ class HistoryPageState extends State<HistoryPage>{
 
   @override
   Widget build(BuildContext context) {
+
     return new Scaffold(
       body: new Container(
           child: new CustomScrollView(
@@ -371,7 +374,7 @@ class HistoryPageState extends State<HistoryPage>{
                   floating: true,
                   flexibleSpace: const FlexibleSpaceBar(
                       title: const Text("History")
-                  ),
+                  )
                 ),
                 new SliverList(
                   delegate: new SliverChildBuilderDelegate((BuildContext context, int index) {
@@ -693,7 +696,7 @@ class SettingsPageState extends State<SettingsPage>{
             children: settings.asMap().keys.map((i)=>new MaterialButton(minWidth:double.infinity,onPressed: (){
               setState((){settings[i] = !settings[i];});
               settingsInfo.writeData(settings);
-            },child:new Padding(padding:EdgeInsets.only(top:5.0,bottom:5.0),child:new Row(children: [new Expanded(child:new Text(i==0?"Autosave on scan":"Setting ${i+1}")),new Switch(value:settings[i],onChanged: (b){
+            },child:new Padding(padding:EdgeInsets.only(top:5.0,bottom:5.0),child:new Row(children: [new Expanded(child:new Text(i<namedSettings.length?namedSettings[i]:"Setting ${i+1}")),new Switch(value:settings[i],onChanged: (b){
               setState((){settings[i] = !settings[i];});
               settingsInfo.writeData(settings);
             })])))).toList()
