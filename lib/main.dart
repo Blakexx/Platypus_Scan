@@ -16,6 +16,7 @@ import 'dart:convert';
 import 'package:share/share.dart';
 import 'package:image_picker_saver/image_picker_saver.dart';
 
+int numSettings = 3;
 
 List<CameraDescription> cameras;
 
@@ -34,7 +35,16 @@ void main() async{
   savedCodes = savedCodes!=null?savedCodes:new List();
   settings = (await settingsInfo.readData());
   if(settings==null){
-    settings = new List(3).map((d)=>false).toList();
+    settings = new List(numSettings).map((d)=>false).toList();
+    settingsInfo.writeData(settings);
+  }
+  if(settings.length<numSettings){
+    for(int i = settings.length;i<numSettings;i++){
+      settings.add(false);
+    }
+    settingsInfo.writeData(settings);
+  }else if(settings.length>numSettings){
+    settings = settings.getRange(0,numSettings).toList();
     settingsInfo.writeData(settings);
   }
   SystemChrome.setEnabledSystemUIOverlays([]);
@@ -299,7 +309,7 @@ class CreateACodeState extends State<CreateACode>{
             icon: new Icon(Icons.share),
             onPressed: () async{
               try{
-                if(input!=null&&input.length>1){
+                if(input!=null&&input.length>0){
                   RenderRepaintBoundary boundary = globalKey.currentContext.findRenderObject();
                   var image = await boundary.toImage();
                   ByteData byteData = await image.toByteData(format: ImageByteFormat.png);
@@ -630,15 +640,14 @@ class SettingsPageState extends State<SettingsPage>{
       body: new Container(
         child: new Center(
           child: new Column(
-            children: [
-              new MaterialButton(minWidth:double.infinity,onPressed: (){
-                setState((){settings[0] = !settings[0];});
-                settingsInfo.writeData(settings);
-              },child:new Padding(padding:EdgeInsets.only(top:5.0,bottom:5.0),child:new Row(children: [new Expanded(child:new Text("Autosave on scan")),new Switch(value:settings[0],onChanged: (b){
-                setState((){settings[0] = !settings[0];});
-                settingsInfo.writeData(settings);
-              })])))
-            ]
+            children: settings.asMap().keys.map((i)=>new MaterialButton(minWidth:double.infinity,onPressed: (){
+              setState((){settings[i] = !settings[i];});
+              settingsInfo.writeData(settings);
+            },child:new Padding(padding:EdgeInsets.only(top:5.0,bottom:5.0),child:new Row(children: [new Expanded(child:new Text(i==0?"Autosave on scan":"Setting ${i+1}")),new Switch(value:settings[i],onChanged: (b){
+              setState((){settings[i] = !settings[i];});
+              settingsInfo.writeData(settings);
+            })])))).toList()
+
           )
         )
       )
